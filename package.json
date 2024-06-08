@@ -1,0 +1,13 @@
+{
+  "name": "codespace-auth-2024",
+  "version": "1.0.0",
+  "description": "An auth system totally designed in github codespace src: Build a complete Authentication system using Github Codespaces https://www.youtube.com/watch?v=2kkUAyG6GtA&amp;t=945s",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
