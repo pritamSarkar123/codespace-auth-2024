@@ -22,8 +22,8 @@
     "vscode": {
       "extensions": ["esbenp.prettier-vscode", "rangav.vscode-thunder-client"],
       "settings": {
-        "editor.fontSize": 32,
-        "terminal.integrated.fontSize": 24
+        "editor.fontSize": 20,
+        "terminal.integrated.fontSize": 14
       }
     }
   }
