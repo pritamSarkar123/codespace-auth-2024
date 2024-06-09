@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get("/",(req,res)=>{
-    res.send("<h1>Welcome to my API</h1>");
+    return res.send("<h1>Welcome to my API</h1>");
 })
 app.post("/register", async (req,res)=>{
     try{
@@ -20,12 +20,12 @@ app.post("/register", async (req,res)=>{
         const {firstname,lastname,email,password} = req.body
         // all the data should exists
         if(!(firstname && lastname &&  email &&  password)) {
-            res.status(400).send("All fields are compulsory");
+            return res.status(400).send("All fields are compulsory");
         }
         // if user already exists
         const existing_user = await User.findOne({ email })
         if (existing_user){
-            res.status(401).send("User already exists");
+            return res.status(401).send("User already exists");
         }
         // encrypt the password 
         const myEncryptedPassword = await bcrypt.hash(password, 10);
@@ -37,11 +37,12 @@ app.post("/register", async (req,res)=>{
             password: myEncryptedPassword
         });
         // generate the token for user and send it
+        const { JWT_SECRET } = process.env
         const token = jwt.sign(
             {
                 id: user._id
             },
-            'pritam', // process.env.jwtsecret
+            JWT_SECRET, // process.env.jwtsecret
             {
                 expiresIn: "2h"
             }
@@ -49,7 +50,7 @@ app.post("/register", async (req,res)=>{
         );
         user.token = token;
         user.password = undefined; // it will not set the value in db, just will not send the password to client
-        res.status(201).json(user)
+        return res.status(201).json(user)
     } catch (error) {
         console.log(error);
     }
@@ -61,25 +62,26 @@ app.post("/login",async (req, res)=>{
         const {email,password} = req.body 
         // validation
         if(!(email &&  password)) {
-            res.status(400).send("All fields are compulsory");
+            return res.status(400).send("All fields are compulsory");
         }
         // find user in db
         const user = await User.findOne({ email })
         // if user is not present
         if (!user){
-            res.status(403).send("wrong credentials");
+            return res.status(403).send("wrong credentials");
         }
         // match the password 
         const passwodMatched = await bcrypt.compare(password, user.password)
         if (!passwodMatched) {
-            res.status(403).send("wrong credentials")
+            return res.status(403).send("wrong credentials")
         }
         // send token<and save the new token>
+        const { JWT_SECRET } = process.env
         const token = jwt.sign(
             {
                 id: user._id
             },
-            'pritam', // process.env.jwtsecret
+            JWT_SECRET, // process.env.jwtsecret
             {
                 expiresIn: "2h"
             }
@@ -92,7 +94,7 @@ app.post("/login",async (req, res)=>{
             expires: new Date(Date.now() + 3*24*60*60*1000),
             httpOnly: true
         };
-        res.status(200).cookie("token",token,options).json({
+        return res.status(200).cookie("token",token,options).json({
             success: true,
             token, 
             user
@@ -106,7 +108,24 @@ app.post("/login",async (req, res)=>{
 
 app.get("/dashboard",auth,(req, res)=>{
     console.log(req.user);
-    res.send("Welcome to dashboard");
+    return res.send("Welcome to dashboard");
 })
 
+
+app.get('/logout',auth, async (req, res) => {
+    try {
+        // Clear the token cookie
+        res.clearCookie('token');
+        return res.status(200).json({
+            message: "Logged out successfully",
+            success: true
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "An error occurred during logout",
+            success: false
+        });
+    }
+});
 module.exports = app;
